@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-bool last;             // Guarda o último estado do botão;
-uint32_t print_timer;  // Timer para a impressão na porta serial;
-uint8_t counter = 0;   // Conta o número de mudança de estados no botão;
+bool last;     // Guarda o último estado do botão
+uint32_t print_timer;
+uint8_t counter = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -35,12 +35,15 @@ void setup() {
 void loop() {
   bool now = digitalRead(8); // Lê o estado atual do botão;
   if (now != last) {         // Checa se houve uma mudança de estado;
-    ++counter;
-    last = now;              // Atualiza o ultimo estado;
+    delay(10);               // Espera até que a trepidação pare;
+    if (now == digitalRead(8)) { // Checa se a mudança ainda persiste;
+      ++counter;
+      last = now;              // Atualiza o ultimo estado;
+    }
   }
 
-  if (millis() - print_timer > 1000) { // Imprime a quantidade de mudanças a cada segundo;
-    Serial.println(counter);
+  if (millis() - print_timer > 1000) {
+    Serial.println(counter);       // Imprime um ponto para indicar a mudança;
     print_timer = millis();
   }
 }
