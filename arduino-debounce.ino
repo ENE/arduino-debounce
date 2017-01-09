@@ -22,15 +22,25 @@
  * SOFTWARE.
  */
 
+bool last;             // Guarda o último estado do botão;
+uint32_t print_timer;  // Timer para a impressão na porta serial;
+uint8_t counter = 0;   // Conta o número de mudança de estados no botão;
+
 void setup() {
-  pinMode(13, OUTPUT);         // Configura o pino 13 (led interno) como saída;
-  pinMode(8, INPUT_PULLUP);    // Configura pino 8 como entrada e habilita pull up interno;
+  Serial.begin(9600);
+  pinMode(8, INPUT_PULLUP); // Configura pino 8 como entrada e habilita pull up interno;
+  last = digitalRead(8);
 }
+
 void loop() {
-  if (digitalRead(8) == LOW) { // Botão Pressionado;
-    digitalWrite(13, HIGH);    // Liga led.
+  bool now = digitalRead(8); // Lê o estado atual do botão;
+  if (now != last) {         // Checa se houve uma mudança de estado;
+    ++counter;
+    last = now;              // Atualiza o ultimo estado;
   }
-  else {                       // Botão Não Pressionado
-    digitalWrite(13, LOW);     // Desliga led.
+
+  if (millis() - print_timer > 1000) { // Imprime a quantidade de mudanças a cada segundo;
+    Serial.println(counter);
+    print_timer = millis();
   }
 }
