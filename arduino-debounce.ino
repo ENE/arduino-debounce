@@ -22,28 +22,37 @@
  * SOFTWARE.
  */
 
-bool last;     // Guarda o último estado do botão
-uint32_t print_timer;
+bool stable;    // Guarda o último estado estável do botão;
+bool unstable;  // Guarda o último estado instável do botão;
+uint32_t bounce_timer;
 uint8_t counter = 0;
 
+bool changed() {
+  bool now = digitalRead(8);   // Lê o estado atual do botão;
+  if (unstable != now) {       // Checa se houve mudança;
+    bounce_timer = millis();   // Atualiza timer;
+    unstable = now;            // Atualiza estado instável;
+  }
+  else if (millis() - bounce_timer > 10) {  // Checa o tempo de trepidação acabou;
+    if (stable != now) {           // Checa se a mudança ainda persiste;
+      stable = now;                  // Atualiza estado estável;
+      return 1;
+    }
+  }
+  return 0;
+}
+
 void setup() {
-  Serial.begin(9600);
-  pinMode(8, INPUT_PULLUP); // Configura pino 8 como entrada e habilita pull up interno;
-  last = digitalRead(8);
+  Serial.begin(9600);        // Configura comunicação serial a uma taxa de 9600 bauds.
+  pinMode(8, INPUT_PULLUP);  // Configura pino 8 como entrada e habilita pull up interno;
+  stable = digitalRead(8);
 }
 
 void loop() {
-  bool now = digitalRead(8); // Lê o estado atual do botão;
-  if (now != last) {         // Checa se houve uma mudança de estado;
-    delay(10);               // Espera até que a trepidação pare;
-    if (now == digitalRead(8)) { // Checa se a mudança ainda persiste;
-      ++counter;
-      last = now;              // Atualiza o ultimo estado;
-    }
+  if (changed()) {
+    ++counter;
+    Serial.println(counter);
   }
 
-  if (millis() - print_timer > 1000) {
-    Serial.println(counter);       // Imprime um ponto para indicar a mudança;
-    print_timer = millis();
-  }
+  // Outras tarefas;
 }
